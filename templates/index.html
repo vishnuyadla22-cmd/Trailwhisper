@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>TrailWhisper — Offline AI Trail Companion</title>
+  <!-- Zero external CDNs or external fonts: 100% self-contained offline -->
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Top App Header -->
+    <header class="app-header">
+      <div class="header-brand">
+        <div class="brand-logo" aria-hidden="true">
+          <!-- Nature & Audio SVG Logo -->
+          <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 3C10 8 7 14 7 21a9 9 0 0 0 18 0c0-7-3-13-9-18z" />
+            <path d="M16 11v11" />
+            <path d="M12 17c1 1.5 2.5 2 4 2s3-.5 4-2" />
+            <circle cx="16" cy="7" r="1.5" fill="currentColor" />
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1 class="brand-title">TrailWhisper</h1>
+          <p class="brand-subtitle">Listen closer. Discover more.</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <!-- Offline Ready Badge -->
+        <div class="status-pill offline-pill" title="Fully operable without internet connection">
+          <span class="pulse-dot green"></span>
+          <span class="pill-label">Offline Ready</span>
+        </div>
+
+        <!-- System Drawer Toggle Button -->
+        <button id="toggle-drawer-btn" class="icon-button" aria-label="Toggle system diagnostics drawer" title="System Status & Diagnostics">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="4" y1="21" x2="4" y2="14"></line>
+            <line x1="4" y1="10" x2="4" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12" y2="3"></line>
+            <line x1="20" y1="21" x2="20" y2="16"></line>
+            <line x1="20" y1="12" x2="20" y2="3"></line>
+            <line x1="1" y1="14" x2="7" y2="14"></line>
+            <line x1="9" y1="8" x2="15" y2="8"></line>
+            <line x1="17" y1="16" x2="23" y2="16"></line>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Collapsible Diagnostics Drawer -->
+    <section id="diagnostics-drawer" class="diagnostics-drawer closed" aria-expanded="false">
+      <div class="drawer-header">
+        <h2 class="drawer-title">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+          </svg>
+          System Offline Diagnostics
+        </h2>
+        <button id="refresh-status-btn" class="text-button" title="Refresh diagnostics">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <polyline points="1 20 1 14 7 14"></polyline>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+          </svg>
+          Check
+        </button>
+      </div>
+
+      <div class="diagnostics-grid">
+        <!-- Backend Status Card -->
+        <div class="diag-card" id="diag-backend">
+          <div class="diag-icon-wrapper">
+            <span class="status-indicator-dot green" id="dot-backend"></span>
+          </div>
+          <div class="diag-content">
+            <span class="diag-label">Python Backend</span>
+            <span class="diag-value" id="val-backend">Connected (FastAPI)</span>
+          </div>
+        </div>
+
+        <!-- BirdNET Status Card -->
+        <div class="diag-card" id="diag-birdnet">
+          <div class="diag-icon-wrapper">
+            <span class="status-indicator-dot amber" id="dot-birdnet"></span>
+          </div>
+          <div class="diag-content">
+            <span class="diag-label">BirdNET Classifier</span>
+            <span class="diag-value" id="val-birdnet">Checking...</span>
+          </div>
+        </div>
+
+        <!-- Ollama Status Card -->
+        <div class="diag-card" id="diag-ollama">
+          <div class="diag-icon-wrapper">
+            <span class="status-indicator-dot amber" id="dot-ollama"></span>
+          </div>
+          <div class="diag-content">
+            <span class="diag-label">Ollama LLM (Local)</span>
+            <span class="diag-value" id="val-ollama">Checking...</span>
+          </div>
+        </div>
+
+        <!-- Speech Synthesis Card -->
+        <div class="diag-card" id="diag-tts">
+          <div class="diag-icon-wrapper">
+            <span class="status-indicator-dot green" id="dot-tts"></span>
+          </div>
+          <div class="diag-content">
+            <span class="diag-label">Audio SpeechSynthesis</span>
+            <span class="diag-value" id="val-tts">Checking...</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="drawer-footer-note" id="drawer-note">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="16" x2="12" y2="12"></line>
+          <line x1="12" y1="8" x2="12.01" y2="8"></line>
+        </svg>
+        <span>Tip: TrailWhisper operates in 100% offline mode with simulated fallback and native voice synthesis.</span>
+      </div>
+    </section>
+
+    <!-- Main Content Area -->
+    <main class="app-main">
+      <!-- Recording Interface Card -->
+      <section class="card recorder-card" aria-label="Audio Recording">
+        <div class="recorder-header">
+          <span class="badge prompt-badge">Trail Audio Scanner</span>
+          <h2 class="section-title">Identify Bird Call</h2>
+          <p class="section-desc">Hold your phone upright and tap to record a 5-second nature soundbite.</p>
+        </div>
+
+        <!-- Visual Audio Waveform Display -->
+        <div class="waveform-container" id="waveform-area">
+          <canvas id="waveform-canvas" width="320" height="70"></canvas>
+          <div class="waveform-status-text" id="record-status-label">Ready to record</div>
+        </div>
+
+        <!-- Big Circular Record Control -->
+        <div class="record-control-wrapper">
+          <div class="pulse-ring-outer" id="pulse-ring"></div>
+          
+          <button id="record-btn" class="record-btn" aria-label="Record 5 seconds of audio" title="Record 5 seconds of audio">
+            <!-- Normal Mic Icon -->
+            <svg id="icon-mic" class="record-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+              <line x1="12" y1="19" x2="12" y2="23"></line>
+              <line x1="8" y1="23" x2="16" y2="23"></line>
+            </svg>
+
+            <!-- Active Recording Countdown & Pulse -->
+            <div id="countdown-display" class="countdown-display hidden">
+              <span id="countdown-number">5</span><span class="unit">s</span>
+            </div>
+
+            <!-- Analyzing Spinner Icon -->
+            <svg id="icon-spinner" class="record-spinner hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle>
+              <path d="M12 2a10 10 0 0 1 10 10"></path>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Cancel Recording Button (visible during recording) -->
+        <div class="recorder-actions">
+          <button id="cancel-record-btn" class="secondary-button hidden" aria-label="Cancel recording">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+            Cancel
+          </button>
+        </div>
+
+        <!-- Global Toast / Inline Feedback Message -->
+        <div id="recorder-feedback" class="feedback-banner hidden" role="alert">
+          <span class="feedback-icon" id="feedback-icon"></span>
+          <span class="feedback-text" id="feedback-text"></span>
+        </div>
+      </section>
+
+      <!-- Observation Result Card (Visible upon successful classification) -->
+      <section id="result-card" class="card result-card hidden" aria-live="polite">
+        <div class="result-header">
+          <div class="result-tags">
+            <span id="result-source-badge" class="badge badge-source">Simulated Demo</span>
+            <span id="result-confidence-badge" class="badge badge-confidence">89% Match</span>
+          </div>
+
+          <div class="auto-speak-toggle-wrapper" title="Automatically speak explanations out loud">
+            <label class="switch-label" for="auto-speak-toggle">
+              <span class="switch-caption">Auto-play voice</span>
+              <div class="switch">
+                <input type="checkbox" id="auto-speak-toggle" checked>
+                <span class="slider"></span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div class="result-species-info">
+          <div class="species-titles">
+            <h3 id="result-common-name" class="species-common-name">Northern Cardinal</h3>
+            <p id="result-scientific-name" class="species-scientific-name">Cardinalis cardinalis</p>
+          </div>
+
+          <button id="replay-voice-btn" class="voice-btn" aria-label="Replay audio explanation" title="Speak explanation again">
+            <svg class="voice-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+              <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+            </svg>
+            <span id="replay-btn-label">Listen</span>
+          </button>
+        </div>
+
+        <div class="explanation-box">
+          <div class="quote-marker">“</div>
+          <p id="result-explanation-text" class="explanation-text">
+            Northern Cardinals whistle clear, two-part melodies to defend their nesting territory and coordinate with their mates. Both male and female cardinals sing, which is rare among temperate songbirds.
+          </p>
+        </div>
+
+        <div class="result-footer">
+          <div class="explainer-attribution">
+            <span class="attribution-label">Insight Engine:</span>
+            <span id="result-explainer-source" class="attribution-pill">Fallback Explainer (Ollama Offline)</span>
+          </div>
+          <span id="result-timestamp" class="result-time">Just now</span>
+        </div>
+      </section>
+
+      <!-- Trail Journal Section -->
+      <section class="card journal-section" aria-label="Trail Journal">
+        <div class="journal-header">
+          <div class="journal-title-wrapper">
+            <h2 class="section-title">Trail Journal</h2>
+            <span id="journal-count-badge" class="count-badge">0 entries</span>
+          </div>
+          <button id="clear-journal-btn" class="danger-text-btn hidden" title="Clear all journal records">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+            Clear Log
+          </button>
+        </div>
+
+        <!-- Journal Entries List -->
+        <div id="journal-list" class="journal-list">
+          <!-- Populated dynamically via JavaScript -->
+        </div>
+
+        <!-- Empty Journal State -->
+        <div id="journal-empty" class="journal-empty">
+          <div class="empty-icon-wrapper">
+            <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+          </div>
+          <h3 class="empty-title">No Trail Observations Yet</h3>
+          <p class="empty-desc">Tap "Record Audio" while out on the trail to identify bird calls and log them in your personal journal.</p>
+        </div>
+      </section>
+    </main>
+
+    <!-- Confirmation Modal Dialog for Clearing Journal -->
+    <div id="confirm-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal-card">
+        <div class="modal-icon-warning">
+          <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+        </div>
+        <h3 id="modal-title" class="modal-title">Clear Trail Journal?</h3>
+        <p class="modal-desc">This will permanently delete all your saved bird call observations from the local SQLite database.</p>
+        <div class="modal-actions">
+          <button id="modal-cancel-btn" class="modal-btn secondary">Cancel</button>
+          <button id="modal-confirm-btn" class="modal-btn danger">Yes, Clear Journal</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Offline Footer -->
+    <footer class="app-footer">
+      <p>TrailWhisper • Zero Cloud Dependence • Hacktoberfest Edition</p>
+    </footer>
+  </div>
+
+  <!-- Vanilla JavaScript Application Logic -->
+  <script src="/static/app.js"></script>
+</body>
+</html>
